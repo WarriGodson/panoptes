@@ -26,26 +26,36 @@ Panoptes automatically monitors the NVD (National Vulnerability Database) for ne
 composer install
 cd frontend && npm install && cd ..
 
-# 2. Configure
+# 2. Generate application key
 cp .env.example .env
 php artisan key:generate
 
-# 3. Setup database
-mysql -u root -p -e "CREATE DATABASE panoptes;"
-php artisan migrate
+# 3. Start services (4 terminals needed)
+# Terminal 1 - Backend
+php artisan serve --host=127.0.0.1 --port=8001
 
-# 4. Add to .env:
-OPENAI_API_KEY=sk-proj-...
-TELEGRAM_BOT_TOKEN=123456:ABC...
+# Terminal 2 - Frontend
+cd frontend && npm run dev
 
-# 5. Start services (4 terminals)
-php artisan serve --host=127.0.0.1 --port=8001  # Backend
-cd frontend && npm run dev                       # Frontend
-php artisan queue:work                           # Queue worker
-php artisan bot:poll-telegram                    # Telegram bot
+# Terminal 3 - Queue worker
+php artisan queue:work
+
+# Terminal 4 - Telegram bot (start after setup)
+php artisan bot:poll-telegram
 ```
 
-Access: `http://localhost:5173`
+**Then access the Web Installer:** `http://localhost:5173`
+
+### 🎯 Web Setup Wizard
+
+The interactive setup wizard will guide you through:
+
+1. **Database Configuration** - Choose MySQL/PostgreSQL/SQLite and test connection
+2. **OpenAI Setup** - Add your API key and verify connectivity
+3. **Telegram Bot** - Configure your bot token from @BotFather
+4. **Automatic Migration** - Database tables created automatically
+
+No manual .env editing required! ✨
 
 ## 🎯 Telegram Bot Commands
 
@@ -68,11 +78,18 @@ Access: `http://localhost:5173`
 ## 🐳 Docker Deployment
 
 ```bash
+# 1. Clone and build
 docker-compose up -d
-docker-compose exec app php artisan migrate
+
+# 2. Access web installer
+# Open http://localhost:8080 and complete the setup wizard
+
+# 3. Start background services
 docker-compose exec app php artisan queue:work &
 docker-compose exec app php artisan bot:poll-telegram &
 ```
+
+The web installer handles all configuration automatically!
 
 ## ⚙️ Configuration
 
